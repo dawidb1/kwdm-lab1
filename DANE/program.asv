@@ -1,0 +1,3 @@
+names=dir('SERIE');
+path='DANE';
+load(fullfile(path,names(k,1).name));
