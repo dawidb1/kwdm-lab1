@@ -22,7 +22,7 @@ function varargout = untitled(varargin)
 
 % Edit the above text to modify the response to help untitled
 
-% Last Modified by GUIDE v2.5 17-Oct-2019 18:25:35
+% Last Modified by GUIDE v2.5 17-Oct-2019 20:44:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -158,8 +158,7 @@ I = double(file.s.serie{n,1});
 m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
 imshow(I2,[],'Parent',handles.axes1);
-handles.n = n;
-handles.m = m;
+
 
 pathOut = 'DANE\WYNIKI';
 namesOut = dir('DANE\WYNIKI\*.mat');
@@ -176,6 +175,8 @@ z = wljoin(img, mask, [0.5 1 0.5], 'be');
 imshow(z, 'Parent', handles.axes2);
 set(handles.pushbutton1, 'enable', 'on');
 handles.file = file;
+handles.n = n;
+handles.m = m;
 guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
@@ -249,7 +250,7 @@ img = I(:,:,m);
 
 global mask;
 imshow(img,[], 'Parent', handles.axes1);
-assignin('base','image',Img);
+assignin('base','image',img);
 set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
 while isempty(mask)==1
     pause(3);
@@ -257,14 +258,15 @@ end;
 maska = mask;
 assignin('base','maska',mask);
 
-imshow(Img,[], 'Parent', handles.axes1);
-l = 10;
-res=activecontour(Img,mask,l)
-z = wljoin(Img, res, [0.5 1 0.5], 'be');
+imshow(img,[], 'Parent', handles.axes1);
+ l = 10
+res=activecontour(img,mask,l);
+z = wljoin(img, res, [0.5 1 0.5], 'be')
 imshow(z, 'Parent', handles.axes1);
 
 handles.maskaseg = mask;
-
+handles.newImg=z;
+guidata(hObject, handles);
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
@@ -278,14 +280,34 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ fig = handles.newImg;
+ Dir = dir('DANE\SEGMENT'); 
 
+ evalin('base', 'save(''Dir'')')
 
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+pathOut = 'DANE\WYNIKI';
+k = get(handles.listFiles,'Value');
 
+m = get(handles.listPrzek,'Value');
+namesOut = dir('DANE\WYNIKI\*.mat');
+fileOut = load(fullfile(pathOut,namesOut(k,1).name));
+a = get(get(handles.uibuttongroup1,'SelectedObject'), 'String');
+x=1;
+if(a == 'Maska 2')
+    x=2;
+end
+maska = double(fileOut.r.maska{x,1});
+mask = maska(:,:,m); 
+sum1=sum(mask(:));
+mask2=handles.maskaseg;
+sum2=sum(mask2(:));
+sum3=sum1-sum2;
+set(handles.edit1,'string',sum3);
 
 % --- Executes on selection change in listbox4.
 function listbox4_Callback(hObject, eventdata, handles)
@@ -304,6 +326,28 @@ function listbox4_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

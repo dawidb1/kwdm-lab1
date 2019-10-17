@@ -82,7 +82,15 @@ function listFiles_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listFiles contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listFiles
-
+path = 'DANE\SERIE';
+k = get(handles.listFiles,'Value');
+names = dir('DANE\SERIE\*.mat'); 
+file = load(fullfile(path,names(k,1).name));
+n = size(file.s.serie,1);
+% I = double(file.s.serie{n,1});
+% slices = size(I,3);
+indexes = 1:1:n;
+set(handles.listSeries, 'string', indexes);
 
 % --- Executes during object creation, after setting all properties.
 function listFiles_CreateFcn(hObject, eventdata, handles)
@@ -141,18 +149,34 @@ function listPrzek_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns listPrzek contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listPrzek
 path = 'DANE\SERIE';
-k = get(handles.lstFiles,'Value');
+k = get(handles.listFiles,'Value');
 
-n = get(handles.lbSerie,'Value');
+n = get(handles.listSeries,'Value');
 names = dir('DANE\SERIE\*.mat'); 
-file = load(fullfile(path,names(patient,1).name));
+file = load(fullfile(path,names(k,1).name));
 I = double(file.s.serie{n,1}); 
-m = get(handles.lbSlice,'Value');
+m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
-imshow(I2,[],'Parent',handles.aImage);
+imshow(I2,[],'Parent',handles.axes1);
 handles.n = n;
 handles.m = m;
 
+pathOut = 'DANE\WYNIKI';
+namesOut = dir('DANE\WYNIKI\*.mat');
+fileOut = load(fullfile(pathOut,namesOut(k,1).name));
+img = double(file.s.serie{n,1}(:,:,m)); 
+a = get(get(handles.uibuttongroup1,'SelectedObject'), 'String');
+x=1;
+if(a == 'Maska 2')
+    x=2;
+end
+maska = double(fileOut.r.maska{x,1});
+mask = maska(:,:,m); 
+z = wljoin(img, mask, [0.5 1 0.5], 'be');
+imshow(z, 'Parent', handles.axes2);
+set(handles.pushbutton1, 'enable', 'on');
+handles.file = file;
+guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to listPrzek (see GCBO)
@@ -215,6 +239,32 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+m = handles.m;
+n = handles.n;
+file = handles.file;
+
+
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+
+global mask;
+imshow(img,[], 'Parent', handles.axes1);
+assignin('base','image',img);
+set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
+while isempty(mask)==1
+    pause(3);
+end;
+maska = mask;
+assignin('base','maska',mask);
+
+imshow(img,[], 'Parent', handles.axes1);
+ l = 10
+res=activecontour(img,mask,l);
+z = wljoin(img, res, [0.5 1 0.5], 'be')
+imshow(z, 'Parent', handles.axes1);
+
+handles.maskaseg = mask;
+handles.newImg=z;
 
 
 % --- Executes on button press in pushbutton2.
@@ -229,7 +279,10 @@ function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+ fig = handles.newImg;
+ Dir = dir('DANE\SEGMENT'); 
+ assignin('base','SavedFig',fig)
+ evalin('base', 'save(''Dir'')')
 
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
