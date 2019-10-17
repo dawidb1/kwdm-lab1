@@ -1,10 +1,11 @@
-pathData = 'DANE\SERIE';
-names=dir('DANE\SERIE\*.mat');
+pathData = 'DANE/SERIE';
+names=dir('DANE/SERIE/*.mat');
 
 
 for k=1:size(names)
 file=load(fullfile(pathData,names(k,1).name));
 end
+
 n=size(file.s.serie,1);
 I=file.s.serie{n,1};
 m=2; %na razie przykladowa wartosc
