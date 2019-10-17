@@ -7,7 +7,7 @@ file=load(fullfile(pathData,names(k,1).name));
 end
 n=size(file.s.serie,1);
 I=file.s.serie{n,1};
-m=2; %na razie przykladowa wartosc
+m=9; %na razie przykladowa wartosc
 img=I(:,:,m);
 imshow(I(:,:,m),[]);
 %Wyswietlanie ca³ej serii:
