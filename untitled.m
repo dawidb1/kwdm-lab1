@@ -22,7 +22,7 @@ function varargout = untitled(varargin)
 
 % Edit the above text to modify the response to help untitled
 
-% Last Modified by GUIDE v2.5 17-Oct-2019 20:44:40
+% Last Modified by GUIDE v2.5 28-Oct-2019 15:48:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before untitled is made visible.
 function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -62,7 +61,6 @@ guidata(hObject, handles);
 % UIWAIT makes untitled wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-
 % --- Outputs from this function are returned to the command line.
 function varargout = untitled_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -72,7 +70,6 @@ function varargout = untitled_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
 
 % --- Executes on selection change in listFiles.
 function listFiles_Callback(hObject, eventdata, handles)
@@ -103,7 +100,6 @@ function listFiles_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 % --- Executes on selection change in listSeries.
 function listSeries_Callback(hObject, eventdata, handles)
@@ -139,7 +135,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on selection change in listPrzek.
 function listPrzek_Callback(hObject, eventdata, handles)
 % hObject    handle to listPrzek (see GCBO)
@@ -157,8 +152,7 @@ file = load(fullfile(path,names(k,1).name));
 I = double(file.s.serie{n,1}); 
 m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
-imshow(I2,[],'Parent',handles.axes1);
-
+imshow(I2,[],'Parent',handles.photoOne);
 
 pathOut = 'DANE\WYNIKI';
 namesOut = dir('DANE\WYNIKI\*.mat');
@@ -172,12 +166,13 @@ end
 maska = double(fileOut.r.maska{x,1});
 mask = maska(:,:,m); 
 z = wljoin(img, mask, [0.5 1 0.5], 'be');
-imshow(z, 'Parent', handles.axes2);
-set(handles.pushbutton1, 'enable', 'on');
+imshow(z, 'Parent', handles.photoSecond);
+set(handles.halfAutomaticSegmentation, 'enable', 'on');
 handles.file = file;
 handles.n = n;
 handles.m = m;
 guidata(hObject, handles);
+
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to listPrzek (see GCBO)
@@ -190,7 +185,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on slider movement.
 function sliderBright_Callback(hObject, eventdata, handles)
 % hObject    handle to sliderBright (see GCBO)
@@ -199,7 +193,12 @@ function sliderBright_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+global im2
+val=0.1*get(hObject,'Value')-0.1;
+imbright=im2+val;
+axes(handles.photoOne);
+imshow(imbright);
+impixelinfo
 
 % --- Executes during object creation, after setting all properties.
 function sliderBright_CreateFcn(hObject, eventdata, handles)
@@ -212,7 +211,6 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
 % --- Executes on slider movement.
 function sliderContrast_Callback(hObject, eventdata, handles)
 % hObject    handle to sliderContrast (see GCBO)
@@ -221,7 +219,12 @@ function sliderContrast_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+global im2
+val=0.1*get(hObject,'Value')-0.1;
+imcontrast=im2+val;
+axes(handles.photoOne);
+imshow(imcontrast);
+impixelinfo
 
 % --- Executes during object creation, after setting all properties.
 function sliderContrast_CreateFcn(hObject, eventdata, handles)
@@ -234,22 +237,20 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in halfAutomaticSegmentation.
+function halfAutomaticSegmentation_Callback(hObject, eventdata, handles)
+% hObject    handle to halfAutomaticSegmentation (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 m = handles.m;
 n = handles.n;
 file = handles.file;
 
-
 I = double(file.s.serie{n,1}); 
 img = I(:,:,m);
 
 global mask;
-imshow(img,[], 'Parent', handles.axes1);
+imshow(img,[], 'Parent', handles.photoOne);
 assignin('base','image',img);
 set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
 while isempty(mask)==1
@@ -258,36 +259,43 @@ end;
 maska = mask;
 assignin('base','maska',mask);
 
-imshow(img,[], 'Parent', handles.axes1);
+imshow(img,[], 'Parent', handles.photoOne);
  l = 10
 res=activecontour(img,mask,l);
 z = wljoin(img, res, [0.5 1 0.5], 'be')
-imshow(z, 'Parent', handles.axes1);
+imshow(z, 'Parent', handles.photoOne);
 
 handles.maskaseg = mask;
 handles.newImg=z;
 guidata(hObject, handles);
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in automaticSegmentation.
+function automaticSegmentation_Callback(hObject, eventdata, handles)
+% hObject    handle to automaticSegmentation (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+% --- Executes on button press in saveBtn.
+function saveBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to saveBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
- fig = handles.newImg;
- Dir = dir('DANE\SEGMENT'); 
 
- evalin('base', 'save(''Dir'')')
+%fig = handles.newImg;
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton4 (see GCBO)
+% seriadozapisu = load(fullfile('DANE/WYNIKI/',handles.dataName));
+% seriadozapisu.r.maska{end+1,1}=handles.maski;
+% global username
+%opis = get(handles.edit1,'String');
+%seriadozapisu.r.maska{end,2}=opis; Je?li chcemy zapisywa? z opisem
+% seriadozapisu.r.maska{end,3}=username;
+% seriadozapisu.r.maska{end,4}=datestr(clock);
+% r=seriadozapisu.r;
+% save(['DANE/WYNIKI/' handles.dataName], 'r');
+
+% --- Executes on button press in undoBtn.
+function undoBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to undoBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 pathOut = 'DANE\WYNIKI';
@@ -309,19 +317,18 @@ sum2=sum(mask2(:));
 sum3=sum1-sum2;
 set(handles.edit1,'string',sum3);
 
-% --- Executes on selection change in listbox4.
-function listbox4_Callback(hObject, eventdata, handles)
-% hObject    handle to listbox4 (see GCBO)
+% --- Executes on selection change in listboxResults.
+function listboxResults_Callback(hObject, eventdata, handles)
+% hObject    handle to listboxResults (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns listbox4 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from listbox4
-
+% Hints: contents = cellstr(get(hObject,'String')) returns listboxResults contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listboxResults
 
 % --- Executes during object creation, after setting all properties.
-function listbox4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to listbox4 (see GCBO)
+function listboxResults_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listboxResults (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -330,7 +337,6 @@ function listbox4_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function edit1_Callback(hObject, eventdata, handles)
