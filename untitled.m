@@ -51,8 +51,15 @@ function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to untitled (see VARARGIN)
-names=dir('DANE\SERIE\*.mat'); 
-set(handles.listFiles, 'string', {names.name});
+
+addpath('load');
+conf = Config;
+
+addpath(conf.serie);
+addpath(conf.wyniki);
+
+set(handles.listFiles, 'string', {conf.names.name});
+
 % Choose default command line output for untitled
 handles.output = hObject;
 
@@ -76,15 +83,13 @@ varargout{1} = handles.output;
 
 % --- Executes on selection change in listFiles.
 function listFiles_Callback(hObject, eventdata, handles)
-% hObject    handle to listFiles (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listFiles contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listFiles
-path = 'DANE\SERIE';
+conf = Config;
+path = conf.serie;
 k = get(handles.listFiles,'Value');
-names = dir('DANE\SERIE\*.mat'); 
+names = conf.names; 
 file = load(fullfile(path,names(k,1).name));
 n = size(file.s.serie,1);
 % I = double(file.s.serie{n,1});
@@ -113,8 +118,9 @@ function listSeries_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listSeries contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listSeries
-pathData = 'DANE\SERIE';
-names=dir('DANE\SERIE\*.mat');
+conf = Config;
+pathData = conf.serie;
+names=conf.names;
 
 k=get(handles.listFiles,'Value');
 file=load(fullfile(pathData,names(k,1).name));
@@ -148,21 +154,22 @@ function listPrzek_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listPrzek contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listPrzek
-path = 'DANE\SERIE';
+conf = Config;
+path = conf.serie;
 k = get(handles.listFiles,'Value');
 
 n = get(handles.listSeries,'Value');
-names = dir('DANE\SERIE\*.mat'); 
-file = load(fullfile(path,names(k,1).name));
+
+file = load(fullfile(path,conf.names(k,1).name));
 I = double(file.s.serie{n,1}); 
 m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
 imshow(I2,[],'Parent',handles.axes1);
 
 
-pathOut = 'DANE\WYNIKI';
-namesOut = dir('DANE\WYNIKI\*.mat');
-fileOut = load(fullfile(pathOut,namesOut(k,1).name));
+pathOut = conf.wyniki;
+
+fileOut = load(fullfile(pathOut,conf.namesOut(k,1).name));
 img = double(file.s.serie{n,1}(:,:,m)); 
 a = get(get(handles.uibuttongroup1,'SelectedObject'), 'String');
 x=1;
@@ -290,12 +297,12 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-pathOut = 'DANE\WYNIKI';
-k = get(handles.listFiles,'Value');
+conf = Config;
 
+k = get(handles.listFiles,'Value');
 m = get(handles.listPrzek,'Value');
-namesOut = dir('DANE\WYNIKI\*.mat');
-fileOut = load(fullfile(pathOut,namesOut(k,1).name));
+
+fileOut = load(fullfile(conf.wyniki,conf.namesOut(k,1).name));
 a = get(get(handles.uibuttongroup1,'SelectedObject'), 'String');
 x=1;
 if(a == 'Maska 2')
