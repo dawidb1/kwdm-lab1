@@ -136,10 +136,9 @@ set(handles.segm_pol_auto_radio_btn, 'enable', 'on');
 handles.file = file;
 handles.n = n;
 handles.m = m;
+
+segm_semi_auto(handles);
 guidata(hObject, handles);
-
-segm_pol_auto_radio_btn_Callback(hObject, eventdata, handles);
-
 
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
@@ -244,25 +243,5 @@ segm_auto(img, handles.axes1);
 % --- Executes on button press in segm_pol_auto_radio_btn.
 function segm_pol_auto_radio_btn_Callback(hObject, eventdata, handles)
 % TODO podpi?? pó?automatyczn? metod?
-img = getImage(handles);
-
-global mask;
-mask = [];
-imshow(img,[], 'Parent', handles.axes1);
-assignin('base','image',img);
-set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
-while isempty(mask)==1
-    pause(3);
-end;
-
-assignin('base','maska',mask);
-
-imshow(img,[], 'Parent', handles.axes1);
- l = 10
-res=activecontour(img,mask,l);
-z = wljoin(img, res, [0.5 1 0.5], 'be')
-imshow(z, 'Parent', handles.axes1);
-
-handles.maskaseg = mask;
-handles.newImg=z;
+segm_semi_auto(handles);
 guidata(hObject, handles);
