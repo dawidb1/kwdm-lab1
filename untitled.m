@@ -1,5 +1,5 @@
 function varargout = untitled(varargin)
-% Last Modified by GUIDE v2.5 17-Oct-2019 20:44:40
+% Last Modified by GUIDE v2.5 31-Oct-2019 01:20:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -22,11 +22,13 @@ end
 
 % --- Executes just before untitled is made visible.
 function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
-% hObject    handle to pushbutton4 (see GCBO)
+% hObject    handle to cofnij_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 addpath('load');
+addpath('segmentacja');
+addpath('imported');
 conf = Config;
 
 addpath(conf.serie);
@@ -108,9 +110,13 @@ k = get(handles.listFiles,'Value');
 n = get(handles.listSeries,'Value');
 
 file = load(fullfile(path,conf.names(k,1).name));
+
 I = double(file.s.serie{n,1}); 
+
+
 m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
+
 imshow(I2,[],'Parent',handles.axes1);
 
 pathOut = conf.wyniki;
@@ -126,11 +132,15 @@ maska = double(fileOut.r.maska{x,1});
 mask = maska(:,:,m); 
 z = wljoin(img, mask, [0.5 1 0.5], 'be');
 imshow(z, 'Parent', handles.axes2);
-set(handles.pushbutton1, 'enable', 'on');
+set(handles.segm_pol_auto_radio_btn, 'enable', 'on');
 handles.file = file;
 handles.n = n;
 handles.m = m;
 guidata(hObject, handles);
+
+segm_pol_auto_radio_btn_Callback(hObject, eventdata, handles);
+
+
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
 
@@ -167,51 +177,18 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
+% --- Executes on button press in segm_auto_btn.
+function segm_auto_btn_Callback(hObject, eventdata, handles)
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-
-m = handles.m;
-n = handles.n;
-file = handles.file;
-
-
-I = double(file.s.serie{n,1}); 
-img = I(:,:,m);
-
-global mask;
-imshow(img,[], 'Parent', handles.axes1);
-assignin('base','image',img);
-set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
-while isempty(mask)==1
-    pause(3);
-end;
-maska = mask;
-assignin('base','maska',mask);
-
-imshow(img,[], 'Parent', handles.axes1);
- l = 10
-res=activecontour(img,mask,l);
-z = wljoin(img, res, [0.5 1 0.5], 'be')
-imshow(z, 'Parent', handles.axes1);
-
-handles.maskaseg = mask;
-handles.newImg=z;
-guidata(hObject, handles);
-
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-
-
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
+% --- Executes on button press in zapisz_btn.
+function zapisz_btn_Callback(hObject, eventdata, handles)
  fig = handles.newImg;
  Dir = dir('DANE\SEGMENT'); 
 
  evalin('base', 'save(''Dir'')')
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
+% --- Executes on button press in cofnij_btn.
+function cofnij_btn_Callback(hObject, eventdata, handles)
 
 conf = Config;
 
@@ -245,8 +222,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function edit1_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of edit1 as text
 %        str2double(get(hObject,'String')) returns contents of edit1 as a double
@@ -258,3 +233,36 @@ function edit1_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+% --- Executes on button press in segm_auto_radio_btn.
+function segm_auto_radio_btn_Callback(hObject, eventdata, handles)
+% Hint: get(hObject,'Value') returns toggle state of segm_auto_radio_btn
+img = getImage(handles);
+segm_auto(img, handles.axes1);
+
+
+% --- Executes on button press in segm_pol_auto_radio_btn.
+function segm_pol_auto_radio_btn_Callback(hObject, eventdata, handles)
+% TODO podpi?? pó?automatyczn? metod?
+img = getImage(handles);
+
+global mask;
+mask = [];
+imshow(img,[], 'Parent', handles.axes1);
+assignin('base','image',img);
+set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
+while isempty(mask)==1
+    pause(3);
+end;
+
+assignin('base','maska',mask);
+
+imshow(img,[], 'Parent', handles.axes1);
+ l = 10
+res=activecontour(img,mask,l);
+z = wljoin(img, res, [0.5 1 0.5], 'be')
+imshow(z, 'Parent', handles.axes1);
+
+handles.maskaseg = mask;
+handles.newImg=z;
+guidata(hObject, handles);
