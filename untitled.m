@@ -137,7 +137,6 @@ handles.file = file;
 handles.n = n;
 handles.m = m;
 
-segm_semi_auto(handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
