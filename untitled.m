@@ -1,5 +1,5 @@
 function varargout = untitled(varargin)
-% Last Modified by GUIDE v2.5 31-Oct-2019 01:20:43
+% Last Modified by GUIDE v2.5 01-Nov-2019 23:04:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -35,6 +35,8 @@ addpath(conf.serie);
 addpath(conf.wyniki);
 
 set(handles.listFiles, 'string', {conf.names.name});
+names2=dir('DANE\SEGMENT\*.mat');
+set(handles.listbox4, 'string', {names2.name});
 
 % Choose default command line output for untitled
 handles.output = hObject;
@@ -152,7 +154,15 @@ function sliderBright_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val);
+I2=imdilate(img,se)-img;
+imshow(I2,[],'Parent',handles.axes1);
 
 % --- Executes during object creation, after setting all properties.
 function sliderBright_CreateFcn(hObject, eventdata, handles)
@@ -167,7 +177,15 @@ function sliderContrast_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val)
+I2=imdilate(img,se);
+imshow(I2,[],'Parent',handles.axes1);
 
 % --- Executes during object creation, after setting all properties.
 function sliderContrast_CreateFcn(hObject, eventdata, handles)
@@ -180,10 +198,20 @@ function segm_auto_btn_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in zapisz_btn.
 function zapisz_btn_Callback(hObject, eventdata, handles)
- fig = handles.newImg;
- Dir = dir('DANE\SEGMENT'); 
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
 
- evalin('base', 'save(''Dir'')')
+mask=handles.maskaseg;
+
+z = wljoin(img, mask, [0.5 1 0.5], 'be');
+x = get(handles.edit3,'String'); 
+str=strcat('DANE\SEGMENT\', x,'.mat');
+save(str,'z')
+names2=dir('DANE\SEGMENT\*.mat');
+set(handles.listbox4, 'string', {names2.name});
 
 % --- Executes on button press in cofnij_btn.
 function cofnij_btn_Callback(hObject, eventdata, handles)
@@ -205,13 +233,21 @@ sum1=sum(mask(:));
 mask2=handles.maskaseg;
 sum2=sum(mask2(:));
 sum3=sum1-sum2;
+mask2 = imresize(mask2,size(mask));
+dw= 2*nnz(mask&mask2)/(nnz(mask) + nnz(mask2));
 set(handles.edit1,'string',sum3);
+set(handles.edit2,'string',dw);
+
 
 % --- Executes on selection change in listbox4.
 function listbox4_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox4 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox4
-
+path='DANE\SEGMENT';
+k = get(handles.listbox4,'Value');
+names = dir('DANE\SEGMENT\*.mat'); 
+file = load(fullfile(path,names(k,1).name));
+imshow(file.z, 'Parent', handles.axes2);
 
 % --- Executes during object creation, after setting all properties.
 function listbox4_CreateFcn(hObject, eventdata, handles)
@@ -236,11 +272,61 @@ end
 function segm_auto_radio_btn_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of segm_auto_radio_btn
 img = getImage(handles);
-segm_auto(img, handles.axes1);
-
+[x,y]=segm_auto(img, handles.axes1);
+handles.maskaseg = x;
+handles.newImg=y;
+guidata(hObject, handles);
 
 % --- Executes on button press in segm_pol_auto_radio_btn.
 function segm_pol_auto_radio_btn_Callback(hObject, eventdata, handles)
 % TODO podpi?? pó?automatyczn? metod?
-segm_semi_auto(handles);
+[x,y]=segm_semi_auto(handles);
+handles.maskaseg = x;
+handles.newImg=y;
 guidata(hObject, handles);
+
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit3_Callback(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit3 as text
+%        str2double(get(hObject,'String')) returns contents of edit3 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

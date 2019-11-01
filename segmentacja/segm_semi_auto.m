@@ -18,8 +18,8 @@ res=activecontour(img,mask,l);
 z = wljoin(img, res, [0.5 1 0.5], 'be')
 imshow(z, 'Parent', handles.axes1);
 
-handles.maskaseg = mask;
-handles.newImg=z;
+outputArg1 = mask;
+outputArg2=z;
 
 end
 

@@ -1,4 +1,4 @@
-function [] = segm_auto(img, axes)
+function [mask,imgNew] = segm_auto(img, axes)
     max_dJ_split=0.3;       % maksymalna ró¿nica intensywnoœci w bloku (faza podzia³u)
     max_dJ_merge=0.3;       % maksymalna ró¿nica œrednich intensywnoœci bloków (faza ³¹czenia)
     min_blok=1;             % minimalny rozmiar bloku
@@ -21,6 +21,14 @@ Jmax=max(max(img));       % skrajne wartoœci intensywnoœci w J
     L=Fun_qtmerge(img,S,max_dJ_merge*Jmax);
 % Wyœwietlanie
 %     TODO poprawienie wy?wietlania wyników
-    imshow(Fun_dispedges(img,find(Fun_unlabel(L)),Jmax),[],'Parent',axes);  
+a=Fun_dispedges(img,find(Fun_unlabel(L)),Jmax);
+x1=a(:,:,1);
+XX1=logical(x1-img);
+
+z = wljoin(img, logical(XX1), [0.5 1 0.5], 'be');
+
+imshow(z,[],'Parent',axes);  
+imgNew=img;
+mask=XX1;
 end
 
