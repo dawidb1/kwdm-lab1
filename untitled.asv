@@ -22,7 +22,7 @@ function varargout = untitled(varargin)
 
 % Edit the above text to modify the response to help untitled
 
-% Last Modified by GUIDE v2.5 17-Oct-2019 18:25:35
+% Last Modified by GUIDE v2.5 01-Nov-2019 21:01:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before untitled is made visible.
 function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -53,6 +52,7 @@ function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to untitled (see VARARGIN)
 names=dir('DANE\SERIE\*.mat'); 
 set(handles.listFiles, 'string', {names.name});
+DANE\SEGMENT\
 % Choose default command line output for untitled
 handles.output = hObject;
 
@@ -61,7 +61,6 @@ guidata(hObject, handles);
 
 % UIWAIT makes untitled wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = untitled_OutputFcn(hObject, eventdata, handles) 
@@ -72,7 +71,6 @@ function varargout = untitled_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
 
 % --- Executes on selection change in listFiles.
 function listFiles_Callback(hObject, eventdata, handles)
@@ -103,7 +101,6 @@ function listFiles_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 % --- Executes on selection change in listSeries.
 function listSeries_Callback(hObject, eventdata, handles)
@@ -139,7 +136,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on selection change in listPrzek.
 function listPrzek_Callback(hObject, eventdata, handles)
 % hObject    handle to listPrzek (see GCBO)
@@ -157,9 +153,7 @@ file = load(fullfile(path,names(k,1).name));
 I = double(file.s.serie{n,1}); 
 m = get(handles.listPrzek,'Value');
 I2 = I(:,:,m);
-imshow(I2,[],'Parent',handles.axes1);
-handles.n = n;
-handles.m = m;
+imshow(I2,[],'Parent',handles.photoOne);
 
 pathOut = 'DANE\WYNIKI';
 namesOut = dir('DANE\WYNIKI\*.mat');
@@ -173,10 +167,13 @@ end
 maska = double(fileOut.r.maska{x,1});
 mask = maska(:,:,m); 
 z = wljoin(img, mask, [0.5 1 0.5], 'be');
-imshow(z, 'Parent', handles.axes2);
-set(handles.pushbutton1, 'enable', 'on');
+imshow(z, 'Parent', handles.photoSecond);
+set(handles.halfAutomaticSegmentation, 'enable', 'on');
 handles.file = file;
+handles.n = n;
+handles.m = m;
 guidata(hObject, handles);
+
 % --- Executes during object creation, after setting all properties.
 function listPrzek_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to listPrzek (see GCBO)
@@ -189,7 +186,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on slider movement.
 function sliderBright_Callback(hObject, eventdata, handles)
 % hObject    handle to sliderBright (see GCBO)
@@ -198,7 +194,16 @@ function sliderBright_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+global im2
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val)
+I2=imdilate(img,se);
+imshow(I2,[],'Parent',handles.photoOne);
 
 % --- Executes during object creation, after setting all properties.
 function sliderBright_CreateFcn(hObject, eventdata, handles)
@@ -211,7 +216,6 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
 % --- Executes on slider movement.
 function sliderContrast_Callback(hObject, eventdata, handles)
 % hObject    handle to sliderContrast (see GCBO)
@@ -220,7 +224,16 @@ function sliderContrast_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+global im2
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val)
+I2=imdilate(img,se)-img;
+imshow(I2,[],'Parent',handles.photoOne);
 
 % --- Executes during object creation, after setting all properties.
 function sliderContrast_CreateFcn(hObject, eventdata, handles)
@@ -233,22 +246,20 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in halfAutomaticSegmentation.
+function halfAutomaticSegmentation_Callback(hObject, eventdata, handles)
+% hObject    handle to halfAutomaticSegmentation (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 m = handles.m;
 n = handles.n;
 file = handles.file;
 
-
 I = double(file.s.serie{n,1}); 
 img = I(:,:,m);
 
 global mask;
-imshow(img,[], 'Parent', handles.axes1);
+imshow(img,[], 'Parent', handles.photoOne);
 assignin('base','image',img);
 set(gcf, 'WindowButtonDownFcn', 'VW_jc([], [],''SelectMouseDown'', image)');
 while isempty(mask)==1
@@ -257,57 +268,151 @@ end;
 maska = mask;
 assignin('base','maska',mask);
 
-imshow(img,[], 'Parent', handles.axes1);
+imshow(img,[], 'Parent', handles.photoOne);
  l = 10
 res=activecontour(img,mask,l);
 z = wljoin(img, res, [0.5 1 0.5], 'be')
-imshow(z, 'Parent', handles.axes1);
+imshow(z, 'Parent', handles.photoOne);
 
 handles.maskaseg = mask;
 handles.newImg=z;
+guidata(hObject, handles);
 
-
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in automaticSegmentation.
+function automaticSegmentation_Callback(hObject, eventdata, handles)
+% hObject    handle to automaticSegmentation (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+% --- Executes on button press in saveBtn.
+function saveBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to saveBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
- fig = handles.newImg;
- Dir = dir('DANE\SEGMENT'); 
- assignin('base','SavedFig',fig)
- evalin('base', 'save(''Dir'')')
+%fig = handles.newImg;
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton4 (see GCBO)
+mask=handles.maskaseg;
+
+z = wljoin(img, mask, [0.5 1 0.5], 'be');
+x = get(handles.edit3,'String'); 
+str=strcat('DANE\SEGMENT\', x,'.mat');
+save(str,'z')
+
+% --- Executes on button press in undoBtn.
+function undoBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to undoBtn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+pathOut = 'DANE\WYNIKI';
+k = get(handles.listFiles,'Value');
+
+m = get(handles.listPrzek,'Value');
+namesOut = dir('DANE\WYNIKI\*.mat');
+fileOut = load(fullfile(pathOut,namesOut(k,1).name));
+a = get(get(handles.uibuttongroup1,'SelectedObject'), 'String');
+x=1;
+if(a == 'Maska 2')
+    x=2;
+end
+maska = double(fileOut.r.maska{x,1});
+mask = maska(:,:,m); 
+sum1=sum(mask(:));
+mask2=handles.maskaseg;
+sum2=sum(mask2(:));
+sum3=sum1-sum2;
+
+dw= 2*nnz(mask&mask2)/(nnz(mask) + nnz(mask2));
+set(handles.edit1,'string',sum3);
+set(handles.edit2,'string',dw);
+
+% --- Executes on selection change in listboxResults.
+function listboxResults_Callback(hObject, eventdata, handles)
+% hObject    handle to listboxResults (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on selection change in listbox4.
-function listbox4_Callback(hObject, eventdata, handles)
-% hObject    handle to listbox4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns listbox4 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from listbox4
-
+% Hints: contents = cellstr(get(hObject,'String')) returns listboxResults contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listboxResults
 
 % --- Executes during object creation, after setting all properties.
-function listbox4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to listbox4 (see GCBO)
+function listboxResults_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listboxResults (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit3_Callback(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit3 as text
+%        str2double(get(hObject,'String')) returns contents of edit3 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

@@ -22,7 +22,7 @@ function varargout = untitled(varargin)
 
 % Edit the above text to modify the response to help untitled
 
-% Last Modified by GUIDE v2.5 28-Oct-2019 15:48:25
+% Last Modified by GUIDE v2.5 01-Nov-2019 21:01:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,6 +52,8 @@ function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to untitled (see VARARGIN)
 names=dir('DANE\SERIE\*.mat'); 
 set(handles.listFiles, 'string', {names.name});
+names2=dir('DANE\SEGMENT\*.mat');
+set(handles.listboxResults, 'string', {names2.name});
 % Choose default command line output for untitled
 handles.output = hObject;
 
@@ -194,11 +196,15 @@ function sliderBright_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 global im2
-val=0.1*get(hObject,'Value')-0.1;
-imbright=im2+val;
-axes(handles.photoOne);
-imshow(imbright);
-impixelinfo
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val)
+I2=imdilate(img,se);
+imshow(I2,[],'Parent',handles.photoOne);
 
 % --- Executes during object creation, after setting all properties.
 function sliderBright_CreateFcn(hObject, eventdata, handles)
@@ -220,11 +226,15 @@ function sliderContrast_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 global im2
-val=0.1*get(hObject,'Value')-0.1;
-imcontrast=im2+val;
-axes(handles.photoOne);
-imshow(imcontrast);
-impixelinfo
+val=int8(10*get(hObject,'Value'));
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
+se=ones(val,val)
+I2=imdilate(img,se)-img;
+imshow(I2,[],'Parent',handles.photoOne);
 
 % --- Executes during object creation, after setting all properties.
 function sliderContrast_CreateFcn(hObject, eventdata, handles)
@@ -280,18 +290,19 @@ function saveBtn_Callback(hObject, eventdata, handles)
 % hObject    handle to saveBtn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 %fig = handles.newImg;
+file = handles.file;
+m = handles.m;
+n = handles.n;
+I = double(file.s.serie{n,1}); 
+img = I(:,:,m);
 
-% seriadozapisu = load(fullfile('DANE/WYNIKI/',handles.dataName));
-% seriadozapisu.r.maska{end+1,1}=handles.maski;
-% global username
-%opis = get(handles.edit1,'String');
-%seriadozapisu.r.maska{end,2}=opis; Je?li chcemy zapisywa? z opisem
-% seriadozapisu.r.maska{end,3}=username;
-% seriadozapisu.r.maska{end,4}=datestr(clock);
-% r=seriadozapisu.r;
-% save(['DANE/WYNIKI/' handles.dataName], 'r');
+mask=handles.maskaseg;
+
+z = wljoin(img, mask, [0.5 1 0.5], 'be');
+x = get(handles.edit3,'String'); 
+str=strcat('DANE\SEGMENT\', x,'.mat');
+save(str,'z')
 
 % --- Executes on button press in undoBtn.
 function undoBtn_Callback(hObject, eventdata, handles)
@@ -315,7 +326,10 @@ sum1=sum(mask(:));
 mask2=handles.maskaseg;
 sum2=sum(mask2(:));
 sum3=sum1-sum2;
+
+dw= 2*nnz(mask&mask2)/(nnz(mask) + nnz(mask2));
 set(handles.edit1,'string',sum3);
+set(handles.edit2,'string',dw);
 
 % --- Executes on selection change in listboxResults.
 function listboxResults_Callback(hObject, eventdata, handles)
@@ -325,10 +339,14 @@ function listboxResults_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listboxResults contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listboxResults
-
+path='DANE\SEGMENT';
+k = get(handles.listboxResults,'Value');
+names = dir('DANE\SEGMENT\*.mat'); 
+file = load(fullfile(path,names(k,1).name));
+imshow(file.z, 'Parent', handles.photoSecond);
 % --- Executes during object creation, after setting all properties.
 function listboxResults_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to listboxResults (see GCBO)
+% hObject    handle to listboxResults (see GCBO)newImg
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -350,6 +368,52 @@ function edit1_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function edit1_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit3_Callback(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit3 as text
+%        str2double(get(hObject,'String')) returns contents of edit3 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
