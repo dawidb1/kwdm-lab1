@@ -198,11 +198,8 @@ function segm_auto_btn_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in zapisz_btn.
 function zapisz_btn_Callback(hObject, eventdata, handles)
-file = handles.file;
-m = handles.m;
-n = handles.n;
-I = double(file.s.serie{n,1}); 
-img = I(:,:,m);
+ 
+img = handles.newImg;
 
 mask=handles.maskaseg;
 
